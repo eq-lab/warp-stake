@@ -1,0 +1,5 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`WarpStake gas deposit 1`] = `160960`;
+
+exports[`WarpStake gas withdraw 1`] = `59986`;
