@@ -20,7 +20,8 @@ describe('WarpStake', () => {
 
     expect(await warpStake.getMaxIndex()).to.be.eq(1);
     expect(await warpStake.getUserIndex(user.address)).to.be.eq(1);
-    expect(await warpStake.getIndexAmount(1)).to.be.eq(amount);
+    expect(await warpStake.getUserByIndex(1)).to.be.eq(user.address);
+    expect(await warpStake.getUserAmount(user.address)).to.be.eq(amount);
     expect(await warpStake.getTotalAmount()).to.be.eq(amount);
     expect(await warpToken.balanceOf(warpStake.target)).to.be.eq(contractBalanceBefore + amount);
     expect(await warpToken.balanceOf(user.address)).to.be.eq(userBalanceBefore - amount);
@@ -45,7 +46,8 @@ describe('WarpStake', () => {
 
     expect(await warpStake.getMaxIndex()).to.be.eq(1);
     expect(await warpStake.getUserIndex(user.address)).to.be.eq(1);
-    expect(await warpStake.getIndexAmount(1)).to.be.eq(delta);
+    expect(await warpStake.getUserByIndex(1)).to.be.eq(user.address);
+    expect(await warpStake.getUserAmount(user.address)).to.be.eq(delta);
     expect(await warpStake.getTotalAmount()).to.be.eq(delta);
     expect(await warpToken.balanceOf(warpStake.target)).to.be.eq(contractBalanceBefore + delta);
     expect(await warpToken.balanceOf(user.address)).to.be.eq(userBalanceBefore - delta);
@@ -74,8 +76,11 @@ describe('WarpStake', () => {
     expect(await warpStake.getUserIndex(user1.address)).to.be.eq(1);
     expect(await warpStake.getUserIndex(user2.address)).to.be.eq(2);
 
-    expect(await warpStake.getIndexAmount(1)).to.be.eq(user1amount);
-    expect(await warpStake.getIndexAmount(2)).to.be.eq(user2amount);
+    expect(await warpStake.getUserByIndex(1)).to.be.eq(user1.address);
+    expect(await warpStake.getUserByIndex(2)).to.be.eq(user2.address);
+
+    expect(await warpStake.getUserAmount(user1.address)).to.be.eq(user1amount);
+    expect(await warpStake.getUserAmount(user2.address)).to.be.eq(user2amount);
 
     expect(await warpStake.getTotalAmount()).to.be.eq(delta);
     expect(await warpToken.balanceOf(warpStake.target)).to.be.eq(contractBalanceBefore + delta);
@@ -120,7 +125,7 @@ describe('WarpStake', () => {
 
     await warpStake.connect(user).withdraw();
 
-    expect(await warpStake.getIndexAmount(1)).to.be.eq(0);
+    expect(await warpStake.getUserAmount(user.address)).to.be.eq(0);
     expect(await warpStake.getTotalAmount()).to.be.eq(0);
     expect(await warpToken.balanceOf(warpStake.target)).to.be.eq(contractBalanceBefore - amount);
     expect(await warpToken.balanceOf(user.address)).to.be.eq(userBalanceBefore + amount);
@@ -151,7 +156,7 @@ describe('WarpStake', () => {
     expect(await warpStake.withdrawsActive()).to.be.true;
 
     await warpStake.connect(user).withdraw();
-    await expect(warpStake.connect(user).withdraw()).to.be.revertedWith('Already withdrawn');
+    await expect(warpStake.connect(user).withdraw()).to.be.revertedWith('Nothing to withdraw');
   });
 
   it('withdraw unknown user', async () => {
@@ -166,7 +171,7 @@ describe('WarpStake', () => {
     await warpStake.connect(transferManager).toggleWithdraws();
     expect(await warpStake.withdrawsActive()).to.be.true;
 
-    await expect(warpStake.connect(user2).withdraw()).to.be.revertedWith('Unknown user');
+    await expect(warpStake.connect(user2).withdraw()).to.be.revertedWith('Nothing to withdraw');
   });
 
   it('toggle withdraws onlyRole', async () => {
