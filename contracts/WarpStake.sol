@@ -20,7 +20,8 @@ contract WarpStake is UUPSUpgradeable, Ownable2StepUpgradeable, AccessControlUpg
     uint256 totalAmount;
     uint256 maxIndex;
     mapping(address user => uint256) indexes;
-    mapping(uint256 index => uint256) amounts;
+    mapping(uint256 index => address) users;
+    mapping(address user => uint256) amounts;
   }
 
   /// @dev 'WarpStakeStorage' storage slot address
@@ -78,12 +79,16 @@ contract WarpStake is UUPSUpgradeable, Ownable2StepUpgradeable, AccessControlUpg
     return _getWarpStakeStorage().totalAmount;
   }
 
+  function getUserByIndex(uint256 index) external view returns (address) {
+    return _getWarpStakeStorage().users[index];
+  }
+
   function getUserIndex(address user) external view returns (uint256) {
     return _getWarpStakeStorage().indexes[user];
   }
 
-  function getIndexAmount(uint256 index) external view returns (uint256) {
-    return _getWarpStakeStorage().amounts[index];
+  function getUserAmount(address user) external view returns (uint256) {
+    return _getWarpStakeStorage().amounts[user];
   }
 
   function depositsActive() external view returns (bool) {
@@ -103,11 +108,12 @@ contract WarpStake is UUPSUpgradeable, Ownable2StepUpgradeable, AccessControlUpg
     if (userIndex == 0) {
       userIndex = ++$.maxIndex;
       $.indexes[msg.sender] = userIndex;
+      $.users[userIndex] = msg.sender;
     }
 
     $.token.safeTransferFrom(msg.sender, address(this), amount);
     $.totalAmount += amount;
-    $.amounts[userIndex] += amount;
+    $.amounts[msg.sender] += amount;
 
     emit Deposit(msg.sender, amount);
   }
@@ -116,15 +122,12 @@ contract WarpStake is UUPSUpgradeable, Ownable2StepUpgradeable, AccessControlUpg
     WarpStakeStorage storage $ = _getWarpStakeStorage();
     require($.withdrawsActive, 'Withdraws are restricted');
 
-    uint256 userIndex = $.indexes[msg.sender];
-    require(userIndex != 0, 'Unknown user');
-
-    withdrawAmount = $.amounts[userIndex];
-    require(withdrawAmount != 0, 'Already withdrawn');
+    withdrawAmount = $.amounts[msg.sender];
+    require(withdrawAmount != 0, 'Nothing to withdraw');
 
     $.token.safeTransfer(msg.sender, withdrawAmount);
     $.totalAmount -= withdrawAmount;
-    delete $.amounts[userIndex];
+    delete $.amounts[msg.sender];
 
     emit Withdraw(msg.sender, withdrawAmount);
   }
