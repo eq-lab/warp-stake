@@ -95,9 +95,9 @@ describe('WarpStake', () => {
     await expect(warpStake.connect(user).deposit(0)).to.be.revertedWith('Zero amount');
   });
 
-  it('withdraws disabled by default', async () => {
+  it('withdrawals disabled by default', async () => {
     const { warpStake, warpToken } = await loadFixture(deployWarpStake);
-    expect(await warpStake.withdrawsActive()).to.be.false;
+    expect(await warpStake.withdrawalsActive()).to.be.false;
 
     const [_, user] = await ethers.getSigners();
 
@@ -108,7 +108,7 @@ describe('WarpStake', () => {
     await expect(warpStake.connect(user).withdraw()).to.be.revertedWith('Withdraws are restricted');
   });
 
-  it('withdraws enabled', async () => {
+  it('withdrawals enabled', async () => {
     const { transferManager, warpStake, warpToken } = await loadFixture(deployWarpStake);
 
     const [_, user] = await ethers.getSigners();
@@ -117,8 +117,8 @@ describe('WarpStake', () => {
     await warpToken.connect(user).approve(warpStake.target, amount);
     await warpStake.connect(user).deposit(amount);
 
-    await warpStake.connect(transferManager).toggleWithdraws();
-    expect(await warpStake.withdrawsActive()).to.be.true;
+    await warpStake.connect(transferManager).enableWithdrawals();
+    expect(await warpStake.withdrawalsActive()).to.be.true;
 
     const userBalanceBefore = await warpToken.balanceOf(user.address);
     const contractBalanceBefore = await warpToken.balanceOf(warpStake.target);
@@ -134,7 +134,7 @@ describe('WarpStake', () => {
   it('deposits disabled', async () => {
     const { transferManager, warpStake, warpToken } = await loadFixture(deployWarpStake);
 
-    await warpStake.connect(transferManager).toggleDeposits();
+    await warpStake.connect(transferManager).disableDeposits();
     expect(await warpStake.depositsActive()).to.be.false;
 
     const [_, user] = await ethers.getSigners();
@@ -152,8 +152,8 @@ describe('WarpStake', () => {
     await warpToken.connect(user).approve(warpStake.target, amount);
     await warpStake.connect(user).deposit(amount);
 
-    await warpStake.connect(transferManager).toggleWithdraws();
-    expect(await warpStake.withdrawsActive()).to.be.true;
+    await warpStake.connect(transferManager).enableWithdrawals();
+    expect(await warpStake.withdrawalsActive()).to.be.true;
 
     await warpStake.connect(user).withdraw();
     await expect(warpStake.connect(user).withdraw()).to.be.revertedWith('Nothing to withdraw');
@@ -168,29 +168,103 @@ describe('WarpStake', () => {
     await warpToken.connect(user1).approve(warpStake.target, amount);
     await warpStake.connect(user1).deposit(amount);
 
-    await warpStake.connect(transferManager).toggleWithdraws();
-    expect(await warpStake.withdrawsActive()).to.be.true;
+    await warpStake.connect(transferManager).enableWithdrawals();
+    expect(await warpStake.withdrawalsActive()).to.be.true;
 
     await expect(warpStake.connect(user2).withdraw()).to.be.revertedWith('Nothing to withdraw');
   });
 
-  it('toggle withdraws onlyRole', async () => {
+  it('switching withdrawals, success', async () => {
+    const { warpStake, transferManager } = await loadFixture(deployWarpStake);
+
+    await warpStake.connect(transferManager).enableWithdrawals();
+    expect(await warpStake.withdrawalsActive()).to.be.true;
+
+    await warpStake.connect(transferManager).disableWithdrawals();
+    expect(await warpStake.withdrawalsActive()).to.be.false;
+  });
+
+  it('switching deposits, success', async () => {
+    const { warpStake, transferManager } = await loadFixture(deployWarpStake);
+
+    await warpStake.connect(transferManager).disableDeposits();
+    expect(await warpStake.depositsActive()).to.be.false;
+
+    await warpStake.connect(transferManager).enableDeposits();
+    expect(await warpStake.depositsActive()).to.be.true;
+  });
+
+  it('enable withdrawals onlyRole', async () => {
     const { warpStake } = await loadFixture(deployWarpStake);
 
     const [_, notManager] = await ethers.getSigners();
-    await expect(warpStake.connect(notManager).toggleDeposits()).to.be.revertedWithCustomError(
+    await expect(warpStake.connect(notManager).enableWithdrawals()).to.be.revertedWithCustomError(
       warpStake,
       'AccessControlUnauthorizedAccount'
     );
   });
 
-  it('toggle deposits onlyRole', async () => {
+  it('enable withdrawals, already enabled', async () => {
+    const { warpStake, transferManager } = await loadFixture(deployWarpStake);
+
+    await warpStake.connect(transferManager).enableWithdrawals();
+    await expect(warpStake.connect(transferManager).enableWithdrawals()).to.be.revertedWith(
+      'Withdrawals are already enabled'
+    );
+  });
+
+  it('disable withdrawals onlyRole', async () => {
     const { warpStake } = await loadFixture(deployWarpStake);
 
     const [_, notManager] = await ethers.getSigners();
-    await expect(warpStake.connect(notManager).toggleWithdraws()).to.be.revertedWithCustomError(
+    await expect(warpStake.connect(notManager).disableWithdrawals()).to.be.revertedWithCustomError(
       warpStake,
       'AccessControlUnauthorizedAccount'
+    );
+  });
+
+  it('disable withdrawals, already disabled', async () => {
+    const { warpStake, transferManager } = await loadFixture(deployWarpStake);
+
+    await expect(warpStake.connect(transferManager).disableWithdrawals()).to.be.revertedWith(
+      'Withdrawals are already disabled'
+    );
+  });
+
+  it('enable deposits onlyRole', async () => {
+    const { warpStake } = await loadFixture(deployWarpStake);
+
+    const [_, notManager] = await ethers.getSigners();
+    await expect(warpStake.connect(notManager).enableDeposits()).to.be.revertedWithCustomError(
+      warpStake,
+      'AccessControlUnauthorizedAccount'
+    );
+  });
+
+  it('enable deposits, already enabled', async () => {
+    const { warpStake, transferManager } = await loadFixture(deployWarpStake);
+
+    await expect(warpStake.connect(transferManager).enableDeposits()).to.be.revertedWith(
+      'Deposits are already enabled'
+    );
+  });
+
+  it('disable deposits onlyRole', async () => {
+    const { warpStake } = await loadFixture(deployWarpStake);
+
+    const [_, notManager] = await ethers.getSigners();
+    await expect(warpStake.connect(notManager).disableDeposits()).to.be.revertedWithCustomError(
+      warpStake,
+      'AccessControlUnauthorizedAccount'
+    );
+  });
+
+  it('disable deposits, already enabled', async () => {
+    const { warpStake, transferManager } = await loadFixture(deployWarpStake);
+
+    await warpStake.connect(transferManager).disableDeposits();
+    await expect(warpStake.connect(transferManager).disableDeposits()).to.be.revertedWith(
+      'Deposits are already disabled'
     );
   });
 
