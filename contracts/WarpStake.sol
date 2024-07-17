@@ -129,7 +129,7 @@ contract WarpStake is UUPSUpgradeable, Ownable2StepUpgradeable, AccessControlUpg
 
   function _withdraw() private returns (uint256 withdrawAmount) {
     WarpStakeStorage storage $ = _getWarpStakeStorage();
-    require($.withdrawalsActive, 'Withdraws are restricted');
+    require($.withdrawalsActive, 'Withdrawals are restricted');
 
     withdrawAmount = $.amounts[msg.sender];
     require(withdrawAmount != 0, 'Nothing to withdraw');
