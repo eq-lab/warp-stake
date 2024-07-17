@@ -268,6 +268,20 @@ describe('WarpStake', () => {
     );
   });
 
+  it('role management', async () => {
+    const { owner, warpStake } = await loadFixture(deployWarpStake);
+    
+    const transferManagerRole = await warpStake.TRANSFER_MANAGER();
+    const [_, notManager] = await ethers.getSigners();
+    expect(await warpStake.hasRole(transferManagerRole, notManager.address)).to.be.false;
+
+    await warpStake.connect(owner).grantRole(transferManagerRole, notManager.address);
+    expect(await warpStake.connect(owner).hasRole(transferManagerRole, notManager.address)).to.be.true;
+
+    await warpStake.connect(owner).revokeRole(transferManagerRole, notManager.address);
+    expect(await warpStake.connect(owner).hasRole(transferManagerRole, notManager.address)).to.be.false;
+  });
+
   it('upgrade success', async () => {
     const { owner, warpStake } = await loadFixture(deployWarpStake);
     expect(function () {
