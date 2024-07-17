@@ -105,7 +105,7 @@ describe('WarpStake', () => {
     await warpToken.connect(user).approve(warpStake.target, amount);
     await warpStake.connect(user).deposit(amount);
 
-    await expect(warpStake.connect(user).withdraw()).to.be.revertedWith('Withdraws are restricted');
+    await expect(warpStake.connect(user).withdraw()).to.be.revertedWith('Withdrawals are restricted');
   });
 
   it('withdrawals enabled', async () => {
