@@ -16,7 +16,7 @@ contract WarpStake is UUPSUpgradeable, Ownable2StepUpgradeable, AccessControlUpg
   struct WarpStakeStorage {
     IERC20 token;
     bool depositsActive;
-    bool withdrawsActive;
+    bool withdrawalsActive;
     uint256 totalAmount;
     uint256 maxIndex;
     mapping(address user => uint256) indexes;
@@ -38,6 +38,7 @@ contract WarpStake is UUPSUpgradeable, Ownable2StepUpgradeable, AccessControlUpg
     WarpStakeStorage storage $ = _getWarpStakeStorage();
     $.token = IERC20(token);
     $.depositsActive = true;
+    _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     _grantRole(TRANSFER_MANAGER, transferManager);
   }
 
@@ -59,12 +60,20 @@ contract WarpStake is UUPSUpgradeable, Ownable2StepUpgradeable, AccessControlUpg
     return _withdraw();
   }
 
-  function toggleDeposits() external onlyRole(TRANSFER_MANAGER) {
-    _toggleDeposits();
+  function enableDeposits() external onlyRole(TRANSFER_MANAGER) {
+    _enableDeposits();
   }
 
-  function toggleWithdraws() external onlyRole(TRANSFER_MANAGER) {
-    _toggleWithdraws();
+  function disableDeposits() external onlyRole(TRANSFER_MANAGER) {
+    _disableDeposits();
+  }
+
+  function enableWithdrawals() external onlyRole(TRANSFER_MANAGER) {
+    _enableWithdrawals();
+  }
+
+  function disableWithdrawals() external onlyRole(TRANSFER_MANAGER) {
+    _disableWithdrawals();
   }
 
   function getToken() external view returns (address) {
@@ -95,8 +104,8 @@ contract WarpStake is UUPSUpgradeable, Ownable2StepUpgradeable, AccessControlUpg
     return _getWarpStakeStorage().depositsActive;
   }
 
-  function withdrawsActive() external view returns (bool) {
-    return _getWarpStakeStorage().withdrawsActive;
+  function withdrawalsActive() external view returns (bool) {
+    return _getWarpStakeStorage().withdrawalsActive;
   }
 
   function _deposit(uint256 amount) private {
@@ -120,7 +129,7 @@ contract WarpStake is UUPSUpgradeable, Ownable2StepUpgradeable, AccessControlUpg
 
   function _withdraw() private returns (uint256 withdrawAmount) {
     WarpStakeStorage storage $ = _getWarpStakeStorage();
-    require($.withdrawsActive, 'Withdraws are restricted');
+    require($.withdrawalsActive, 'Withdrawals are restricted');
 
     withdrawAmount = $.amounts[msg.sender];
     require(withdrawAmount != 0, 'Nothing to withdraw');
@@ -132,13 +141,27 @@ contract WarpStake is UUPSUpgradeable, Ownable2StepUpgradeable, AccessControlUpg
     emit Withdraw(msg.sender, withdrawAmount);
   }
 
-  function _toggleDeposits() private {
+  function _enableDeposits() private {
     WarpStakeStorage storage $ = _getWarpStakeStorage();
-    $.depositsActive = !$.depositsActive;
+    require(!$.depositsActive, 'Deposits are already enabled');
+    $.depositsActive = true;
   }
 
-  function _toggleWithdraws() private {
+  function _disableDeposits() private {
     WarpStakeStorage storage $ = _getWarpStakeStorage();
-    $.withdrawsActive = !$.withdrawsActive;
+    require($.depositsActive, 'Deposits are already disabled');
+    $.depositsActive = false;
+  }
+
+  function _enableWithdrawals() private {
+    WarpStakeStorage storage $ = _getWarpStakeStorage();
+    require(!$.withdrawalsActive, 'Withdrawals are already enabled');
+    $.withdrawalsActive = true;
+  }
+
+  function _disableWithdrawals() private {
+    WarpStakeStorage storage $ = _getWarpStakeStorage();
+    require($.withdrawalsActive, 'Withdrawals are already disabled');
+    $.withdrawalsActive = false;
   }
 }
