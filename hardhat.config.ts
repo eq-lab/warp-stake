@@ -13,7 +13,7 @@ const config = {
       url: "https://rpc.ankr.com/eth"
     },
     holesky: {
-      url: 'https://endpoints.omniatech.io/v1/eth/holesky/public',
+      url: 'https://ethereum-holesky-rpc.publicnode.com',
     },
     holesky2: {
       url: 'https://1rpc.io/holesky',
