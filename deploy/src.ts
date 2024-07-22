@@ -22,10 +22,7 @@ export async function performDeployment(
 
   const warpStake = await deployWarpStake(signer, hre, config);
   const warpStakeAddress = warpStake.target.toString();
-  const implementationAddress = await getImplementationAddress(
-    signer.provider as unknown as EthereumProvider,
-    warpStakeAddress
-  );
+  const implementationAddress = await hre.upgrades.erc1967.getImplementationAddress(warpStakeAddress);
 
   const deploymentData = { proxy: warpStakeAddress, implementation: implementationAddress };
   console.log(`Deployment: ${deploymentStore.stringify(deploymentData)}`);
