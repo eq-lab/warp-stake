@@ -1,7 +1,8 @@
 import { task } from 'hardhat/config';
 import { HardhatNetworkConfig, HardhatRuntimeEnvironment } from 'hardhat/types';
 import { loadDeployConfig } from '../deploy/config';
-import { constructSigner, performDeployment } from '../deploy/src';
+import { performDeployment } from '../deploy/src';
+import { fork } from '../deploy/fork';
 
 interface DeployArgs {
   creatorPrivateKey: string;
@@ -20,7 +21,11 @@ task('task:deploy', 'Deploy Yield proxies and implementations')
       throw new Error(`Failed to find config for a network with a name ${network}`);
     }
 
-    const signer = await constructSigner(hre, taskArgs.creatorPrivateKey, dryRun);
+    if (taskArgs.dryRun) {
+      await fork(hre);
+    }
+
+    const signer = new hre.ethers.Wallet(taskArgs.creatorPrivateKey, hre.ethers.provider);
 
     const balanceBefore = await signer.provider!.getBalance(signer.address);
     console.log(`Balance before: ${hre.ethers.formatEther(balanceBefore)} Eth`);
