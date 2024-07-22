@@ -107,5 +107,6 @@ async function createFork(hre: HardhatRuntimeEnvironment): Promise<HardhatEthers
   };
   const ganacheProvider = await ganache.provider(options);
   await ganacheProvider.once('connect');
-  return new HardhatEthersProvider(ganacheProvider as unknown as EthereumProvider, `${network.name}-fork`);
+  hre.network.provider = ganacheProvider as unknown as EthereumProvider;
+  return new HardhatEthersProvider(ganacheProvider as unknown as EthereumProvider, `${network.name}`);
 }
