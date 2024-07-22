@@ -8,7 +8,11 @@ export async function deployToken(owner: SignerWithAddress): Promise<MintableERC
   return new MintableERC20__factory().connect(owner).deploy('warp token', 'WARP');
 }
 
-export async function deployWarpStakeContract(owner: SignerWithAddress, tokenAddress: string, transferManager: string): Promise<WarpStake> {
+export async function deployWarpStakeContract(
+  owner: SignerWithAddress,
+  tokenAddress: string,
+  transferManager: string
+): Promise<WarpStake> {
   return upgrades.deployProxy(new WarpStake__factory().connect(owner), [tokenAddress, transferManager], {
     initializer: 'initialize',
   }) as unknown as Promise<WarpStake>;
