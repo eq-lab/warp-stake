@@ -270,7 +270,7 @@ describe('WarpStake', () => {
 
   it('role management', async () => {
     const { owner, warpStake } = await loadFixture(deployWarpStake);
-    
+
     const transferManagerRole = await warpStake.TRANSFER_MANAGER();
     const [_, notManager] = await ethers.getSigners();
     expect(await warpStake.hasRole(transferManagerRole, notManager.address)).to.be.false;
