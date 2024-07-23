@@ -81,6 +81,15 @@ export class DeploymentFile<TDeployment extends BaseDeployment> {
   }
 
   private getDeploymentFilePath(network: string): string {
+    const dirName = path.join(__dirname, `data`, `contracts`);
+    if (!fs.existsSync(dirName)) {
+      fs.mkdirSync(dirName);
+    }
+
+    if (!fs.statSync(dirName).isDirectory()) {
+      throw new Error(`Not a directory: ${dirName}`);
+    }
+
     return path.join(__dirname, `data`, `contracts`, `${network}.json`);
   }
 }

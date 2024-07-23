@@ -29,7 +29,7 @@ export async function fork(hre: HardhatRuntimeEnvironment): Promise<void> {
 
   const newEthereumProvider = ganacheProvider as unknown as EthereumProvider;
 
-  hre.ethers.provider = new HardhatEthersProvider(ganacheProvider as unknown as EthereumProvider, `${network.name}`);
+  hre.ethers.provider = new HardhatEthersProvider(newEthereumProvider, `${network.name}`);
   hre.network.provider = newEthereumProvider;
 }
 

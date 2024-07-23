@@ -1,8 +1,7 @@
 import { Signer } from 'ethers';
-import { HardhatRuntimeEnvironment, EthereumProvider } from 'hardhat/types';
+import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { WarpStake__factory, WarpStake } from '../typechain-types';
 import { DeploymentConfig } from './config';
-import { getImplementationAddress } from '@openzeppelin/upgrades-core';
 import { removeForkManifest } from './fork';
 import { SimpleLogger } from './logger';
 import { DeploymentFile } from './deployment-store';
@@ -27,16 +26,16 @@ export async function performDeployment(
   const deploymentData = { proxy: warpStakeAddress, implementation: implementationAddress };
   console.log(`Deployment: ${deploymentStore.stringify(deploymentData)}`);
 
-  if (dryRun) {
-    removeForkManifest();
-  }
-
   stateStore.setById('WarpStake-proxy', <DeployState>{
     txHash: warpStake.deploymentTransaction()?.hash,
     address: warpStakeAddress,
   });
   stateStore.setById('WarpStake-impl', <DeployState>{ address: implementationAddress });
   deploymentStore.setById('WarpStake', deploymentData);
+
+  if (dryRun) {
+    removeForkManifest();
+  }
 }
 
 async function deployWarpStake(
@@ -48,7 +47,7 @@ async function deployWarpStake(
 
   const warpStake = (await hre.upgrades.deployProxy(
     await new WarpStake__factory().connect(signer),
-    [config.token, config.transferManager],
+    [config.token.address, config.transferManager],
     {
       initializer: 'initialize',
       txOverrides: config.ethConnection.ethOptions,

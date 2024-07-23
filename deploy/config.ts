@@ -2,14 +2,24 @@ import fs from 'fs';
 import path from 'path';
 
 import { isAddress, Overrides, Provider } from 'ethers';
+import { ERC20__factory } from '../typechain-types';
+
+const WARP_SYMBOL = 'WARP';
+const WARP_DECIMALS = 6;
 
 export interface EthConnectionConfig {
   ethOptions?: Overrides;
   chainId: number;
 }
 
+export interface TokenConfig {
+  address: string;
+  symbol?: string;
+  decimals?: number;
+}
+
 export interface DeploymentConfig {
-  token: string;
+  token: TokenConfig;
   transferManager: string;
   ethConnection: EthConnectionConfig;
 }
@@ -54,11 +64,33 @@ async function assertDeployConfigValidity(
     console.warn('ethOptions are undefined: this may cause unexpected deployment fails');
   }
 
-  if (!isAddress(config.token)) {
-    throw new Error(`Token value is not address: ${config.token}`);
-  }
+  await assertTokenConfig(config.token, provider);
 
   if (!isAddress(config.transferManager)) {
     throw new Error(`TransferManager value is not address: ${config.transferManager}`);
+  }
+}
+
+async function assertTokenConfig(token: TokenConfig, provider: Provider): Promise<void> {
+  if (!isAddress(token.address)) {
+    throw new Error(`Invalid token address! Address: "${token.address}", symbol: ${token.symbol}`);
+  }
+
+  const tokenContract = ERC20__factory.connect(token.address, provider);
+
+  const tokenSymbol = token.symbol ? token.symbol : WARP_SYMBOL;
+  const symbol = await tokenContract.symbol();
+  if (symbol !== tokenSymbol) {
+    throw new Error(
+      `Invalid token symbol! Address: ${token.address}, expected symbol: ${tokenSymbol}, actual: ${symbol}`
+    );
+  }
+
+  const tokenDecimals = token.decimals ? token.decimals : WARP_DECIMALS;
+  const decimals = await tokenContract.decimals();
+  if (Number(decimals) !== tokenDecimals) {
+    throw new Error(
+      `Invalid token decimals! Address: ${token.address}, expected decimals: ${tokenDecimals}, actual: ${decimals}`
+    );
   }
 }
