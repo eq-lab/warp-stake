@@ -1,0 +1,6 @@
+{
+  "WarpStake": {
+    "proxy": "0x06766F0E2BCF4FDeFad65f6C89d8b9BA3CD9E1EF",
+    "implementation": "0xC9410ad0D96082B83184d391a0fe4243EEB822b0"
+  }
+}
