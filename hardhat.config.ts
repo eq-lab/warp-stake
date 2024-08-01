@@ -17,11 +17,14 @@ const config = {
     },
     holesky2: {
       url: 'https://1rpc.io/holesky',
+    },
+    base: {
+      url: 'https://rpc.ankr.com/base',
     }
   },
   etherscan: {
     apiKey: {
-      holesky: ""
+      base: ""
     }
   },
 };

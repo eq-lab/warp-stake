@@ -1,0 +1,11 @@
+{
+  "contracts": {
+    "WarpStake-proxy": {
+      "txHash": "0x2707d662e9dd6cf033ea3db5cee78a94cf5555c8fccfce56b4e5ccfc4f37aea5",
+      "address": "0x41Ab6ae2f8479Ca393feCE920C4c8A82F000837f"
+    },
+    "WarpStake-impl": {
+      "address": "0xc977B93A637755738F9949d3d6652309F96cCdD0"
+    }
+  }
+}
