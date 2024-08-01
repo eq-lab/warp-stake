@@ -1,0 +1,11 @@
+{
+  "ethConnection": {
+    "chainId": 8453,
+    "ethOptions": {
+    }
+  },
+  "transferManager": "0xd8e671D276E0B6828B88F29Aaee840b03E452fdA",
+  "token": {
+    "address": "0x3c8665472ec5aF30981B06B4E0143663EBeDcc1E"
+  }
+}
